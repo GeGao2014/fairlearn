@@ -253,3 +253,42 @@ class ErrorRatio(ConditionalSelectionRate):
                           event=pd.Series(y).apply(lambda y: _LABEL + "=" + str(y)),
                           multiplier=pd.Series(y).apply(lambda y: 1 - 2*y),
                           **kwargs)
+class ErrorDifference(ConditionalSelectionRate):
+    r"""Implementation of Error Ratio as a moment.
+
+    Measures the difference in errors per attribute by overall error.
+    The 2-sided version of error diff can be written as
+    abs(error(A=a) - total_error) <= diff
+    .. math::
+    abs(E[abs(h(x) - y) = 1 | A = a] - E[abs(h(x) - y) = 1]) <= diff\; \forall a
+
+    This implementation of :class:`ConditionalSelectionRate` defines
+    events corresponding to the unique values of the `Y` array.
+
+    The `prob_event` :class:`pandas:pandas.DataFrame` will record the
+    fraction of the samples corresponding to each unique value in
+    the `Y` array.
+
+    The `index` MultiIndex will have a number of entries equal to
+    the number of unique values for the sensitive feature, multiplied by
+    the number of unique values of the `Y` array, multiplied by two (for
+    the Lagrange multipliers for positive and negative constraints).
+
+    With these definitions, the :math:`signed_weights` method
+    will calculate the costs according to Example 4 of
+    `Agarwal et al. (2018) <https://arxiv.org/abs/1803.02453>`_.
+    """
+
+    short_name = "ErrorDifference"
+
+    def __init__(self, ratio=1.0):
+        """Intialise with the ratio value."""
+        super(ErrorDifference, self).__init__()
+        self.ratio = 1.0
+
+    def load_data(self, X, y, **kwargs):
+        """Load the specified data into the object."""
+        super().load_data(X, y,
+                          event=pd.Series(y).apply(lambda y: _LABEL + "=" + str(y)),
+                          multiplier=pd.Series(y).apply(lambda y: 1 - 2*y),
+                          **kwargs)
